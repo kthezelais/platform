@@ -1,0 +1,12 @@
+<network>
+    <name>{name}</name>
+    <forward dev='wlo1' mode='nat'/>
+    <bridge name='virbr1' stp='on' delay='0' />
+    <ip address="192.168.10.1" netmask="255.255.255.0">
+        <dhcp>
+            <range start="192.168.10.101" end="192.168.10.254" />
+            <!-- Used to static a IP from a MAC address to force a VM to get a static IP -->
+            <!-- <host mac="00:16:3e:e2:ed" name="foo.example.com" ip="192.168.122.10" /> -->
+        </dhcp>
+    </ip>
+</network>

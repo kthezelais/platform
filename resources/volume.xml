@@ -1,0 +1,11 @@
+<volume>
+    <name>{volume_name}</name>
+    <capacity unit='G'>20</capacity>
+    <target>
+        <format type='qcow2'/>
+    </target>
+    <backingStore>
+        <path>{base_img}</path>
+        <format type='qcow2'/>
+    </backingStore>
+</volume>
