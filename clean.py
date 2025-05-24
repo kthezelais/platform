@@ -1,6 +1,7 @@
 import libvirt
 from controllers.pool_controller import get_pool
 from controllers.network_controller import get_network
+from controllers.domain_controller import delete_domain_by_name
 from settings import \
     DEFAULT_VM_NAME, \
     LIBVIRT_PERMISSION, \
@@ -12,8 +13,11 @@ print(conn.listStoragePools())
 print(conn.listAllStoragePools(), end="\n\n")
 
 
+domains = []
 try:
-    conn.listAllDomains()[0].destroy()
+    for domain in conn.listAllDomains():
+        domains.append(domain.name())
+        delete_domain_by_name(conn, domain.name())
 except:
     pass
 
@@ -26,10 +30,11 @@ except:
     pass
 
 try:
-    pool_vm = get_pool(conn, DEFAULT_VM_NAME)
+    for domain in domains:
+        pool_vm = get_pool(conn, domain)
 
-    pool_vm.destroy()
-    pool_vm.undefine()
+        pool_vm.destroy()
+        pool_vm.undefine()
 except:
     pass
 

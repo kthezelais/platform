@@ -49,7 +49,7 @@ def create_volume(
     return storage_pool.createXML(volume_xml, 0)
 
 
-def create_virtual_machine(
+def create_domain(
         conn: libvirt.virConnect,
         volume: libvirt.virStorageVol,
         network: libvirt.virNetwork,
@@ -57,7 +57,7 @@ def create_virtual_machine(
         vcpu:int = 1,
         memory:int = 1) -> libvirt.virDomain:
     # Load VM XML configuration
-    with open(f"{RESOURCES_PATH}/virtual_machine.xml", "r") as file:
+    with open(f"{RESOURCES_PATH}/domain.xml", "r") as file:
         vm_xml = file.read().format(
             name=name,
             memory=memory,
@@ -69,25 +69,25 @@ def create_virtual_machine(
     return conn.createXML(vm_xml)
 
 
-def delete_vm_by_name(conn:libvirt.virConnect, name:str) -> libvirt.virDomain:
-    # Loop over all existing VMs
-    for vm in conn.listAllDomains():
-        if vm.name() == name:
-            # Return the deleted VM
-            return delete_vm(vm)
+def delete_domain_by_name(conn:libvirt.virConnect, name:str) -> libvirt.virDomain:
+    # Loop over all existing domains
+    for domain in conn.listAllDomains():
+        if domain.name() == name:
+            # Return the deleted domain
+            return delete_domain(domain)
     
     print(f"VirtualMachine '{name}' not found.\n")
     return None
 
 
-def delete_vm(vm:libvirt.virDomain):
-    # Try to stop and delete VM
+def delete_domain(domain:libvirt.virDomain) -> libvirt.virDomain:
+    # Try to stop and delete domain
     try:
-        vm.XMLDesc()
-        vm.reset()
-        vm.destroy()
+        domain.XMLDesc()
+        domain.reset()
+        domain.destroy()
     except libvirt.libvirtError:
-        print(f"VirtualMachine '{vm.name()}' not found.\n")
+        print(f"Domain '{domain.name()}' not found.\n")
 
-    print(f"VirtualMachine '{vm.name()}' successfully destroyed.\n")
-    return vm
+    print(f"Domain '{domain.name()}' successfully destroyed.\n")
+    return domain
