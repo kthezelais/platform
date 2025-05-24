@@ -1,8 +1,10 @@
 import libvirt
 from controllers.pool_controller import get_pool
+from controllers.network_controller import get_network
 from settings import \
     DEFAULT_VM_NAME, \
-    LIBVIRT_PERMISSION
+    LIBVIRT_PERMISSION, \
+    NETWORK_NAME
 
 
 conn = libvirt.open(f"qemu:///{LIBVIRT_PERMISSION}")
@@ -28,6 +30,14 @@ try:
 
     pool_vm.destroy()
     pool_vm.undefine()
+except:
+    pass
+
+try:
+    network = get_network(conn, NETWORK_NAME)
+
+    network.destroy()
+    network.undefine()
 except:
     pass
 
