@@ -55,7 +55,8 @@ def create_domain(
         network: libvirt.virNetwork,
         name:str = DEFAULT_VM_NAME,
         vcpu:int = 1,
-        memory:int = 1) -> libvirt.virDomain:
+        memory:int = 1,
+        auto_start: int = 0) -> libvirt.virDomain:
     # Load VM XML configuration
     with open(f"{RESOURCES_PATH}/domain.xml", "r") as file:
         vm_xml = file.read().format(
@@ -66,7 +67,10 @@ def create_domain(
             bridge_name=network.bridgeName(),
             cloud_init_iso=f"{Path(volume.path()).parent}/seed.iso"
         )
-    return conn.createXML(vm_xml)
+    domain = conn.defineXML(vm_xml)
+    domain.setAutostart(auto_start)
+    domain.create()
+    return domain
 
 
 def delete_domain_by_name(conn:libvirt.virConnect, name:str) -> libvirt.virDomain:
@@ -76,7 +80,7 @@ def delete_domain_by_name(conn:libvirt.virConnect, name:str) -> libvirt.virDomai
             # Return the deleted domain
             return delete_domain(domain)
     
-    print(f"VirtualMachine '{name}' not found.\n")
+    print(f"Domain '{name}' not found.\n")
     return None
 
 

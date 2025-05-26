@@ -3,7 +3,6 @@ from controllers.pool_controller import get_pool
 from controllers.network_controller import get_network
 from controllers.domain_controller import delete_domain_by_name
 from settings import \
-    DEFAULT_VM_NAME, \
     LIBVIRT_PERMISSION, \
     NETWORK_NAME
 
