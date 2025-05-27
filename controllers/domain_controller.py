@@ -90,6 +90,7 @@ def delete_domain(domain:libvirt.virDomain) -> libvirt.virDomain:
         domain.XMLDesc()
         domain.reset()
         domain.destroy()
+        domain.undefine()
     except libvirt.libvirtError:
         print(f"Domain '{domain.name()}' not found.\n")
 

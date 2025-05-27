@@ -32,7 +32,9 @@ try:
     for domain in domains:
         pool_vm = get_pool(conn, domain)
 
-        pool_vm.destroy()
+        if pool_vm.isActive():
+            pool_vm.destroy()
+
         pool_vm.undefine()
 except:
     pass
