@@ -1,29 +1,32 @@
 import libvirt
-import subprocess, crypt
+import subprocess
 from pathlib import Path
+from models.VMContext import VMContext
 from settings import \
     RESOURCES_PATH, \
-    DEFAULT_USERNAME, \
-    DEFAULT_PASSWORD, \
     DEFAULT_VM_NAME, \
     VM_DIR
 
 
 def create_cloud_init_disk(
-        vm_name: str,
-        login_user: str = DEFAULT_USERNAME,
-        login_pass: str = DEFAULT_PASSWORD) -> Path:
+        vm_name: str ,
+        users: list[dict[
+            "username": str,
+            "password": str,
+            "sudo": bool
+        ]],
+        install_k8s: bool = False,
+        install_dependencies: str = None) -> Path:
     # Generate user-data/meta-data in vm_dir
     vm_dir = Path(f"{VM_DIR}/{vm_name}")
     try:
-        # Setup user-data / meta-data
-        with open(f"{RESOURCES_PATH}/cloud-init-tpl/user-data.yaml", "r") as file:
-            salt = crypt.mksalt(crypt.METHOD_SHA512)
-            user_data = file.read().format(username=login_user, password=crypt.crypt(login_pass, salt))
-
         # Create user-data file
-        with open(f"{vm_dir}/user-data.yaml", "w") as file:
-            file.write(user_data)
+        ctx = VMContext(
+            users=users,
+            k8s_dependencies=install_k8s,
+            install_dependencies=install_dependencies
+        )
+        user_data_path = ctx.gen_user_data(vm_dir)
 
         # Create meta-data file
         with open(f"{vm_dir}/meta-data.yaml", "w") as file:
@@ -34,7 +37,7 @@ def create_cloud_init_disk(
 
     try:
         # Create cloud-init iso from user-data file
-        subprocess.run(["cloud-localds", f"{vm_dir}/seed.iso", f"{vm_dir}/user-data.yaml", f"{vm_dir}/meta-data.yaml"])
+        subprocess.run(["cloud-localds", f"{vm_dir}/seed.iso", user_data_path, f"{vm_dir}/meta-data.yaml"])
     except subprocess.CalledProcessError as e:
         print(e)
 

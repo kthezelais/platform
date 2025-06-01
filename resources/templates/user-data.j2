@@ -1,0 +1,42 @@
+#cloud-config
+users:
+{% for user in users %}
+  - name: "{{ user["username"] }}"
+  {% if user["sudo"] %}
+    sudo: ALL=(ALL) NOPASSWD:ALL
+  {% endif %}
+    lock_passwd: false
+    passwd: "{{ user["password"] }}"
+    shell: /bin/bash
+    ssh_redirect_user: false
+{% endfor %}
+{% if install_dependencies or k8s_dependencies %}
+write_files:
+  {% if install_dependencies %}
+  - path: /tmp/install_dependencies
+    permissions: "0755"
+    content: |
+      {{ install_dependencies.splitlines() | join('\n      ') }}
+  {% endif %}
+  {% if k8s_dependencies %}
+  - path: /tmp/k8s_dependencies
+    permissions: "0755"
+    content: |
+      {{ k8s_dependencies.splitlines() | join('\n      ') }}
+  {% endif %}
+{% endif %}
+ssh_pwauth: true
+disable_root: false
+
+runcmd:
+  - apt-get update -y && apt-get upgrade -y
+  - apt-get autoremove -y && apt-get clean -y
+{% if install_dependencies %}
+  - bash -x /tmp/install_dependencies
+{% endif %}
+{% if k8s_dependencies %}
+  - bash -x /tmp/k8s_dependencies
+{% endif %}
+
+package_update: true
+package_upgrade: true

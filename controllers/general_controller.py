@@ -1,8 +1,9 @@
 import libvirt
-from pathlib import Path
 from controllers.pool_controller import get_pool
 from controllers.network_controller import get_network
-from controllers.image_controller import get_image_path, import_image
+from controllers.image_controller import \
+    get_image_path, \
+    import_image
 from controllers.domain_controller import \
     create_volume, \
     create_cloud_init_disk, \
@@ -20,14 +21,20 @@ from settings import \
 
 
 def create_virtual_machine(
-        vm_name: str = DEFAULT_VM_NAME,
-        os_variant: str = DEFAULT_OS_VARIANT,
-        username: str = DEFAULT_USERNAME,
-        password: str = DEFAULT_PASSWORD,
-        network: str = NETWORK_NAME,
-        vcpu: int = 2,
-        memory: int = 2048
-        ) -> libvirt.virDomain:
+    vm_name: str = DEFAULT_VM_NAME,
+    os_variant: str = DEFAULT_OS_VARIANT,
+    users: list[dict[str, str]] = [{
+        "username": DEFAULT_USERNAME,
+        "password": DEFAULT_PASSWORD,
+        "sudo": False
+    }],
+    network: str = NETWORK_NAME,
+    vcpu: int = 2,
+    memory: int = 2048,
+    install_k8s: bool = False,
+    install_dependencies: str = None
+) -> libvirt.virDomain:
+    
     # Check if WORK_DIR / IMG_DIR / VM_DIR exists
     if not WORK_DIR.exists() or not IMG_DIR.exists() or not VM_DIR.exists():
         raise Exception(f"WORK_DIR, IMG_DIR or VM_DIR doesn't exists.")
@@ -52,8 +59,9 @@ def create_virtual_machine(
     # Generate user-data/meta-data
     create_cloud_init_disk(
         vm_name=vm_name,
-        login_user=username,
-        login_pass=password
+        users=users,
+        install_k8s=install_k8s,
+        install_dependencies=install_dependencies
     )
 
     # Create Volume
