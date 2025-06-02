@@ -47,6 +47,12 @@
             <listen type='address' address='127.0.0.1'/>
         </graphics>
 
+        <!-- QEMU Agent -->
+        <channel type='unix'>
+            <source mode='bind'/>
+            <target type='virtio' name='org.qemu.guest_agent.0'/>
+        </channel>
+
         <console type='pty'>
             <target type='serial' port='0'/>
         </console>

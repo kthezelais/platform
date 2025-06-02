@@ -1,6 +1,8 @@
 asgiref==3.8.1
+bcrypt==4.3.0
 Django==5.1.6
 Jinja2==3.1.5
 libvirt-python==11.0.0
 MarkupSafe==3.0.2
+passlib==1.7.4
 sqlparse==0.5.3

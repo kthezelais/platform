@@ -31,6 +31,8 @@ disable_root: false
 runcmd:
   - apt-get update -y && apt-get upgrade -y
   - apt-get autoremove -y && apt-get clean -y
+  - apt-get install qemu-guest-agent -y
+  - systemctl start qemu-guest-agent
 {% if install_dependencies %}
   - bash -x /tmp/install_dependencies
 {% endif %}

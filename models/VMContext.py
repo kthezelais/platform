@@ -1,5 +1,6 @@
 from jinja2 import Environment, FileSystemLoader
 from pathlib import Path
+import bcrypt
 import os
 
 
@@ -9,6 +10,12 @@ class VMContext:
             "password": str,
             "sudo": bool
         ]], k8s_dependencies: bool = False, install_dependencies: str = None):
+        
+        # Hash password
+        salt = bcrypt.gensalt()
+        for user in users:
+            user["password"] = bcrypt.hashpw(password=user["password"].encode('utf-8'), salt=salt).decode('utf-8')
+
         self.users = users
         self.k8s_dependencies = k8s_dependencies
         self.install_dependencies = install_dependencies
