@@ -9,7 +9,7 @@ class VMContext:
             "username": str,
             "password": str,
             "sudo": bool
-        ]], k8s_dependencies: bool = False, install_dependencies: str = None):
+        ]], vm_name: str, k8s_dependencies: bool = False, install_dependencies: str = None):
         
         # Hash password
         salt = bcrypt.gensalt()
@@ -17,6 +17,7 @@ class VMContext:
             user["password"] = bcrypt.hashpw(password=user["password"].encode('utf-8'), salt=salt).decode('utf-8')
 
         self.users = users
+        self.vm_name = vm_name
         self.k8s_dependencies = k8s_dependencies
         self.install_dependencies = install_dependencies
 

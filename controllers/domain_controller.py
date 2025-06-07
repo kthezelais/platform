@@ -9,7 +9,7 @@ from settings import \
 
 
 def create_cloud_init_disk(
-        vm_name: str ,
+        vm_name: str,
         users: list[dict[
             "username": str,
             "password": str,
@@ -23,6 +23,7 @@ def create_cloud_init_disk(
         # Create user-data file
         ctx = VMContext(
             users=users,
+            vm_name=vm_name,
             k8s_dependencies=install_k8s,
             install_dependencies=install_dependencies
         )

@@ -1,4 +1,5 @@
 #cloud-config
+hostname: {{ vm_name }}
 users:
 {% for user in users %}
   - name: "{{ user["username"] }}"
