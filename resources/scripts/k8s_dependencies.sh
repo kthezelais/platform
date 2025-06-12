@@ -39,7 +39,7 @@ echo "deb [signed-by=/etc/apt/keyrings/kubernetes-apt-keyring.gpg] https://pkgs.
 curl -fsSL https://pkgs.k8s.io/core:/stable:/v${CLUSTER_VERSION:0:4}/deb/Release.key | sudo gpg --dearmor -o /etc/apt/keyrings/kubernetes-apt-keyring.gpg
 
 apt-get update -y
-apt-get install -y kubelet=${CLUSTER_VERSION} kubeadm=${CLUSTER_VERSION}
+apt-get install -y kubelet=${CLUSTER_VERSION} kubeadm=${CLUSTER_VERSION} kubectl=${CLUSTER_VERSION}
 apt-mark hold kubelet kubeadm kubectl
 
 # Configure crictl to use containerd.sock

@@ -2,6 +2,7 @@ import libvirt
 import subprocess
 from pathlib import Path
 from models.VMContext import VMContext
+from models.KubernetesRole import KubernetesRole
 from settings import \
     RESOURCES_PATH, \
     DEFAULT_VM_NAME, \
@@ -15,7 +16,7 @@ def create_cloud_init_disk(
             "password": str,
             "sudo": bool
         ]],
-        install_k8s: bool = False,
+        install_k8s: KubernetesRole = KubernetesRole.NONE,
         install_dependencies: str = None) -> Path:
     # Generate user-data/meta-data in vm_dir
     vm_dir = Path(f"{VM_DIR}/{vm_name}")

@@ -1,22 +1,29 @@
 from jinja2 import Environment, FileSystemLoader
 from pathlib import Path
+from models.KubernetesRole import KubernetesRole
 import bcrypt
 import os
+import copy
 
 
 class VMContext:
-    def __init__(self, users: list[dict[
+    def __init__(self, 
+        users: list[dict[
             "username": str,
             "password": str,
             "sudo": bool
-        ]], vm_name: str, k8s_dependencies: bool = False, install_dependencies: str = None):
+        ]],
+        vm_name: str,
+        k8s_dependencies: KubernetesRole = KubernetesRole.NONE,
+        install_dependencies: str = None
+    ):
         
         # Hash password
+        self.users = copy.deepcopy(users)
         salt = bcrypt.gensalt()
-        for user in users:
+        for user in self.users:
             user["password"] = bcrypt.hashpw(password=user["password"].encode('utf-8'), salt=salt).decode('utf-8')
-
-        self.users = users
+        
         self.vm_name = vm_name
         self.k8s_dependencies = k8s_dependencies
         self.install_dependencies = install_dependencies
@@ -29,6 +36,10 @@ class VMContext:
                 if val:
                     with open(f"{os.getcwd()}/resources/scripts/k8s_dependencies.sh") as file:
                         context[name] = file.read()
+                    
+                    if val == KubernetesRole.CONTROL_PLANE:
+                        with open(f"{os.getcwd()}/resources/scripts/init_control_plane.sh") as file:
+                            context[name] += '\n' + file.read()
             else:
                 context[name] = val
         return context

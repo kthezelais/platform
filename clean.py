@@ -40,6 +40,16 @@ except:
     pass
 
 try:
+    for pool in conn.listAllStoragePools():
+        if pool.name() != "default":
+            if pool.isActive():
+                pool.destroy()
+
+            pool.undefine()
+except:
+    pass
+
+try:
     network = get_network(conn, NETWORK_NAME)
 
     network.destroy()

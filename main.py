@@ -4,6 +4,7 @@ import threading
 import sys
 import paramiko
 from controllers.general_controller import create_virtual_machine
+from models.KubernetesRole import KubernetesRole
 from settings import \
     DEFAULT_USERNAME, \
     DEFAULT_PASSWORD
@@ -97,28 +98,56 @@ if __name__ == "__main__":
     libvirt.registerErrorHandler(f=lambda userdata, err: None, ctx=None)
 
     # Create virtual machine and define dependencies to be installed
-    domain = create_virtual_machine(
-        users=users,
-        install_k8s=True
-    )
-
-    ip_addr = wait_for_ip(domain)
+    domains = []
+    for i in range(4):
+        domains.append(create_virtual_machine(
+            vm_name="control-plane" if i == 0 else f"worker-{i}",
+            users=users,
+            install_k8s=KubernetesRole.CONTROL_PLANE if i == 0 else KubernetesRole.WORKER
+        ))
+    control_plane = domains[0]
+    control_plane_ip = wait_for_ip(control_plane)
 
     # Print the ssh command to connect to the host
-    print(f"\n\t\tssh {users[0]["username"]}@{ip_addr}", end="\n\n")
+    print(f"\n\t\tssh {users[0]["username"]}@{control_plane_ip}", end="\n\n")
 
     # Connect to VM and start a cluster
     ssh = paramiko.SSHClient()
     ssh.set_missing_host_key_policy(paramiko.AutoAddPolicy())
-    ssh.connect(ip_addr, username=DEFAULT_USERNAME, password=DEFAULT_PASSWORD)
+    ssh.connect(control_plane_ip, username=DEFAULT_USERNAME, password=DEFAULT_PASSWORD)
 
     ssh_exec(ssh, f"cloud-init status --wait")
-    ssh_exec(ssh, f"sudo kubeadm init --pod-network-cidr 10.224.0.0/16 --control-plane-endpoint={ip_addr}")
     kubeconfig = ssh_exec(ssh, f"sudo cat /etc/kubernetes/admin.conf")
+    token = ssh_exec(ssh, "cat /tmp/__TOKEN__")
+    cert = ssh_exec(ssh, "cat /tmp/__HASH_CERT__")
 
     with open("kubeconfig", "w") as file:
         file.write(kubeconfig)
-
     ssh.close()
+
+
+    def join_worker(domain: libvirt.virDomain, control_plane_ip: str, token: str, cert: str):
+        ip_addr = wait_for_ip(domain)
+        print(f"{domain.name()}: {ip_addr}")
+
+        # Connect to VM and start a cluster
+        ssh = paramiko.SSHClient()
+        ssh.set_missing_host_key_policy(paramiko.AutoAddPolicy())
+        ssh.connect(ip_addr, username=DEFAULT_USERNAME, password=DEFAULT_PASSWORD)
+
+        ssh_exec(ssh, f"cloud-init status --wait")
+        ssh_exec(ssh, f"sudo kubeadm join {control_plane_ip}:6443 --token {token[:-1]} --discovery-token-ca-cert-hash sha256:{cert[:-1]}")
+
+        ssh.close()
+
+
+    for i in range(1, len(domains)):
+        join_worker(
+            domain=domains[i],
+            control_plane_ip=control_plane_ip,
+            token=token,
+            cert=cert
+        )
+
     end = time.perf_counter()
     print(f"Elapsed time: {end - start:.4f} seconds")

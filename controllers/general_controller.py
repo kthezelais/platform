@@ -1,6 +1,7 @@
 import libvirt
 from controllers.pool_controller import get_pool
 from controllers.network_controller import get_network
+from models.KubernetesRole import KubernetesRole 
 from controllers.image_controller import \
     get_image_path, \
     import_image
@@ -31,7 +32,7 @@ def create_virtual_machine(
     network: str = NETWORK_NAME,
     vcpu: int = 2,
     memory: int = 2048,
-    install_k8s: bool = False,
+    install_k8s: KubernetesRole = KubernetesRole.NONE,
     install_dependencies: str = None
 ) -> libvirt.virDomain:
     
